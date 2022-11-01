@@ -1,16 +1,14 @@
 #include "RetroEngine.hpp"
 
-void InitPauseMenu()
+void RetroGameLoop_Create(void *objPtr)
 {
-    PauseSound();
-    ClearNativeObjects();
-    CREATE_ENTITY(MenuBG);
-    CREATE_ENTITY(PauseMenu);
+    NativeEntity_RetroGameLoop *entity = (NativeEntity_RetroGameLoop *)objPtr;
+    entity->pauseMenu                  = nullptr;
 }
-
-void RetroGameLoop_Create(void *objPtr) { mixFiltersOnJekyll = Engine.useHighResAssets; }
 void RetroGameLoop_Main(void *objPtr)
 {
+    NativeEntity_RetroGameLoop *entity = (NativeEntity_RetroGameLoop *)objPtr;
+
     switch (Engine.gameMode) {
         case ENGINE_DEVMENU:
 #if RETRO_HARDWARE_RENDER
@@ -19,12 +17,14 @@ void RetroGameLoop_Main(void *objPtr)
             gfxIndexSizeOpaque  = 0;
             gfxVertexSizeOpaque = 0;
 #endif
+#if !RETRO_USE_ORIGINAL_CODE
+            if (entity->pauseMenu && nativeEntityCount > 1) // dumb fix but yknow how it is
+                RemoveNativeObject(entity->pauseMenu);
+            entity->pauseMenu = nullptr;
+#endif
 
-            ProcessStageSelect();
-            TransferRetroBuffer();
-            RenderRetroBuffer(64, 160.0);
+            processStageSelect();
             break;
-
         case ENGINE_MAINGAME:
 #if RETRO_HARDWARE_RENDER
             gfxIndexSize        = 0;
@@ -36,78 +36,73 @@ void RetroGameLoop_Main(void *objPtr)
             render3DEnabled     = false;
 #endif
             ProcessStage();
-            TransferRetroBuffer();
-            RenderRetroBuffer(64, 160.0);
             break;
-
         case ENGINE_INITDEVMENU:
             Engine.LoadGameConfig("Data/Game/GameConfig.bin");
-            InitDevMenu();
+            initDevMenu();
             ResetCurrentStageFolder();
             break;
-
         case ENGINE_WAIT: break;
-
         case ENGINE_SCRIPTERROR:
             Engine.LoadGameConfig("Data/Game/GameConfig.bin");
-            InitErrorMessage();
+            initErrorMessage();
             ResetCurrentStageFolder();
             break;
-
         case ENGINE_INITPAUSE:
-            mixFiltersOnJekyll = false;
-            InitPauseMenu();
+#if !RETRO_USE_ORIGINAL_CODE
+            if (nativeEntityCount > 1) {
+                Engine.gameMode = ENGINE_MAINGAME;
+                StopSFXByName("MenuBack");
+                break;
+            }
+#endif
+            PauseSound();
+            // ClearNativeObjects();
+            Engine.gameMode = ENGINE_WAIT; // temp (maybe?) so pause menu renders on top
+                                           // CreateNativeObject(MenuBG_Create, MenuBG_Main); // temp until/if nativeObjs are fully complete
+#if !RETRO_USE_ORIGINAL_CODE
+            entity->pauseMenu = (NativeEntity_PauseMenu *)CreateNativeObject(PauseMenu_Create, PauseMenu_Main);
+#endif
             break;
-
         case ENGINE_EXITPAUSE:
             Engine.gameMode = ENGINE_MAINGAME;
             ResumeSound();
-            TransferRetroBuffer();
+            // if (entity->pauseMenu)
+            //    RemoveNativeObject(entity->pauseMenu);
+            // entity->pauseMenu = nullptr;
             break;
-
         case ENGINE_ENDGAME:
             ClearScreen(1);
-            TransferRetroBuffer();
-            RestoreNativeObjects();
+            // RestoreNativeObjects();
             Engine.LoadGameConfig("Data/Game/GameConfig.bin");
             activeStageList   = 0;
             stageListPosition = 0;
+#if !RETRO_USE_ORIGINAL_CODE
+            initStartMenu(0);
+#endif
             break;
-
         case ENGINE_RESETGAME: // Also called when 2P VS disconnects
             ClearScreen(1);
-            TransferRetroBuffer();
-            RestoreNativeObjects();
-            break;
-
-#if !RETRO_USE_ORIGINAL_CODE && RETRO_USE_NETWORKING
-        case ENGINE_CONNECT2PVS: {
-            CREATE_ENTITY(MultiplayerScreen)->bg = CREATE_ENTITY(MenuBG);
-            NativeEntity_FadeScreen *fade        = CREATE_ENTITY(FadeScreen);
-            fade->state                          = FADESCREEN_STATE_FADEIN;
-            fade->delay                          = 1.5;
-            fade->fadeSpeed                      = 1.0;
-            Engine.gameMode                      = ENGINE_WAIT2PVS;
-            break;
-        }
-        case ENGINE_WAIT2PVS:
-            // wait for vs response
-            if (dcError)
-                CREATE_ENTITY(MultiplayerHandler);
-            break;
-
+            // RestoreNativeObjects();
+#if !RETRO_USE_ORIGINAL_CODE
+            initStartMenu(1);
 #endif
-#if RETRO_USE_MOD_LOADER
+            break;
+#if !RETRO_USE_ORIGINAL_CODE
+        case ENGINE_STARTMENU: processStartMenu(); break;
+        case ENGINE_CONNECT2PVS:
+            // connect screen goes here
+            break;
         case ENGINE_INITMODMENU:
             Engine.LoadGameConfig("Data/Game/GameConfig.bin");
-            InitDevMenu();
-
+            initStartMenu(0);
             ResetCurrentStageFolder();
 
+#if RETRO_USE_MOD_LOADER
             SetupTextMenu(&gameMenu[0], 0);
             AddTextMenuEntry(&gameMenu[0], "MOD LIST");
             SetupTextMenu(&gameMenu[1], 0);
-            InitMods(); // reload mods
+            initMods(); // reload mods
 
             char buffer[0x100];
             for (int m = 0; m < modList.size(); ++m) {
@@ -117,7 +112,7 @@ void RetroGameLoop_Main(void *objPtr)
                 AddTextMenuEntry(&gameMenu[1], buffer);
             }
 
-            gameMenu[1].alignment      = MENU_ALIGN_RIGHT;
+            gameMenu[1].alignment      = 1;
             gameMenu[1].selectionCount = 3;
             gameMenu[1].selection1     = 0;
             if (gameMenu[1].rowCount > 18)
@@ -125,15 +120,17 @@ void RetroGameLoop_Main(void *objPtr)
             else
                 gameMenu[1].visibleRowCount = 0;
 
-            gameMenu[0].alignment        = MENU_ALIGN_CENTER;
+            gameMenu[0].alignment        = 2;
             gameMenu[0].selectionCount   = 1;
             gameMenu[1].timer            = 0;
             gameMenu[1].visibleRowOffset = 0;
-            stageMode                    = DEVMENU_MODMENU;
+            stageMode                    = STARTMENU_MODMENU;
+#endif
+
             break;
 #endif
         default:
-            PrintLog("GameMode '%d' Called", Engine.gameMode);
+            printLog("GameMode '%d' Called", Engine.gameMode);
             activeStageList   = 0;
             stageListPosition = 0;
             stageMode         = STAGEMODE_LOAD;

@@ -2,10 +2,6 @@ LOCAL_PATH := $(call my-dir)
 
 OGG_DIR := dependencies/android/libogg
 VORBIS_DIR := dependencies/android/libvorbis
-OGG_DIR := dependencies/android/libogg
-TXML_DIR := dependencies/all/tinyxml2
-ASIO_DIR := dependencies/all/asio/asio/include
-STBIMG_DIR := dependencies/all/stb-image
 
 OGG_INCLUDES    := $(LOCAL_PATH)/$(OGG_DIR)/include
 VORBIS_INCLUDES := $(LOCAL_PATH)/$(VORBIS_DIR)/include \
@@ -62,27 +58,19 @@ SDL_PATH := ../SDL
 LOCAL_CFLAGS   := -fexceptions
 
 LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/RSDKv4 \
-    $(LOCAL_PATH)/RSDKv4/NativeObjects \
     $(LOCAL_PATH)/$(SDL_PATH)/include \
     $(LOCAL_PATH)/dependencies/all \
     $(LOCAL_PATH)/$(VORBIS_DIR)/include \
-    $(LOCAL_PATH)/$(OGG_DIR)/include \
-    $(LOCAL_PATH)/$(TXML_DIR) \
-    $(LOCAL_PATH)/$(STBIMG_DIR) \
-    $(LOCAL_PATH)/$(ASIO_DIR)
+    $(LOCAL_PATH)/$(OGG_DIR)/include
 
 
 WILDCARD_SETUP := \
-  $(wildcard $(LOCAL_PATH)/RSDKv4/*.cpp) \
-  $(LOCAL_PATH)/RSDKv4/NativeObjects/All.cpp \
-  $(wildcard $(LOCAL_PATH)/dependencies/all/stb-image/*.cpp) \
-  $(wildcard $(LOCAL_PATH)/dependencies/all/tinyxml2/*.cpp)
+  $(wildcard $(LOCAL_PATH)/RSDKv4/*.cpp)
 
 LOCAL_SRC_FILES := $(subst jni/src/, , $(WILDCARD_SETUP))
 
 LOCAL_SHARED_LIBRARIES := SDL2 libogg libvorbis
 
-LOCAL_LDLIBS := -lGLESv1_CM -llog
+LOCAL_LDLIBS := -lGLESv1_CM -lGLESv2 -llog
 
 include $(BUILD_SHARED_LIBRARY)

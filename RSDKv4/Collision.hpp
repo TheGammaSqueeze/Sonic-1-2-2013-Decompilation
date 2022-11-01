@@ -31,35 +31,11 @@ enum ObjectCollisionTypes {
 };
 
 struct CollisionSensor {
-    int xpos;
-    int ypos;
+    int XPos;
+    int YPos;
     int angle;
     bool collided;
 };
-
-#if !RETRO_USE_ORIGINAL_CODE
-#define DEBUG_HITBOX_COUNT (0x400)
-
-struct DebugHitboxInfo {
-    byte type;
-    byte collision;
-    short left;
-    short top;
-    short right;
-    short bottom;
-    int xpos;
-    int ypos;
-    Entity *entity;
-};
-
-enum DebugHitboxTypes { H_TYPE_TOUCH, H_TYPE_BOX, H_TYPE_PLAT, H_TYPE_FINGER };
-
-extern byte showHitboxes;
-extern int debugHitboxCount;
-extern DebugHitboxInfo debugHitboxList[DEBUG_HITBOX_COUNT];
-
-int addDebugHitbox(byte type, Entity *entity, int left, int top, int right, int bottom);
-#endif
 
 extern int collisionLeft;
 extern int collisionTop;
@@ -68,7 +44,7 @@ extern int collisionBottom;
 
 extern int collisionTolerance;
 
-extern CollisionSensor sensors[RETRO_REV00 ? 6 : 7];
+extern CollisionSensor sensors[7];
 
 void FindFloorPosition(Entity *player, CollisionSensor *sensor, int startYPos);
 void FindLWallPosition(Entity *player, CollisionSensor *sensor, int startXPos);
@@ -84,7 +60,7 @@ void SetPathGripSensors(Entity *player);
 void ProcessPathGrip(Entity *player);
 void ProcessAirCollision(Entity *player);
 
-void ProcessTileCollisions(Entity *player);
+void ProcessPlayerTileCollisions(Entity *player);
 
 void TouchCollision(Entity *thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity *otherEntity, int otherLeft, int otherTop,
                     int otherRight, int otherBottom);

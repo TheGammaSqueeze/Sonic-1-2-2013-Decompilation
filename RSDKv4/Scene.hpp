@@ -2,7 +2,7 @@
 #define SCENE_H
 
 #define LAYER_COUNT    (9)
-#define DEFORM_STORE   (256)
+#define DEFORM_STORE   (0x100)
 #define DEFORM_SIZE    (320)
 #define DEFORM_COUNT   (DEFORM_STORE + DEFORM_SIZE)
 #define PARALLAX_COUNT (0x100)
@@ -13,75 +13,60 @@
 #define TILE_DATASIZE (TILE_SIZE * TILE_SIZE)
 #define TILESET_SIZE  (TILE_COUNT * TILE_DATASIZE)
 
-#define TILELAYER_CHUNK_W          (0x100)
-#define TILELAYER_CHUNK_H          (0x100)
-#define TILELAYER_CHUNK_COUNT      (TILELAYER_CHUNK_W * TILELAYER_CHUNK_H)
-#define TILELAYER_LINESCROLL_COUNT (TILELAYER_CHUNK_H * CHUNK_SIZE)
+#define TILELAYER_CHUNK_W    (0x100)
+#define TILELAYER_CHUNK_H    (0x100)
+#define TILELAYER_CHUNK_MAX  (TILELAYER_CHUNK_W * TILELAYER_CHUNK_H)
+#define TILELAYER_SCROLL_MAX (TILELAYER_CHUNK_H * CHUNK_SIZE)
 
 #define CHUNKTILE_COUNT (0x200 * (8 * 8))
 
 #define CPATH_COUNT (2)
 
 enum StageListNames {
-    STAGELIST_PRESENTATION,
-    STAGELIST_REGULAR,
-    STAGELIST_BONUS,
-    STAGELIST_SPECIAL,
+    STAGELIST_PRESENTATION = 0,
+    STAGELIST_REGULAR      = 1,
+    STAGELIST_BONUS        = 2,
+    STAGELIST_SPECIAL      = 3,
     STAGELIST_MAX, // StageList size
 };
 
 enum TileLayerTypes {
-    LAYER_NOSCROLL,
-    LAYER_HSCROLL,
-    LAYER_VSCROLL,
-    LAYER_3DFLOOR,
-    LAYER_3DSKY,
+    LAYER_NOSCROLL = 0,
+    LAYER_HSCROLL  = 1,
+    LAYER_VSCROLL  = 2,
+    LAYER_3DFLOOR  = 3,
+    LAYER_3DSKY    = 4,
 };
 
 enum StageModes {
-    STAGEMODE_LOAD,
-    STAGEMODE_NORMAL,
-    STAGEMODE_PAUSED,
-    STAGEMODE_FROZEN,
-
-#if !RETRO_REV00
-    STAGEMODE_2P,
-#endif
-
-    STAGEMODE_NORMAL_STEP,
-    STAGEMODE_PAUSED_STEP,
-    STAGEMODE_FROZEN_STEP,
-
-#if !RETRO_REV00
-    STAGEMODE_2P_STEP,
-#endif
+    STAGEMODE_LOAD            = 0,
+    STAGEMODE_NORMAL          = 1,
+    STAGEMODE_PAUSED          = 2,
+    STAGEMODE_FROZEN          = 3,
+    STAGEMODE_2P              = 4,
+    STAGEMODE_STEPOVER        = 5,
+    STAGEMODE_PAUSED_STEPOVER = 6,
+    STAGEMODE_FROZEN_PAUSED   = 7,
+    STAGEMODE_2P_PAUSED       = 8
 };
 
 enum TileInfo {
-    TILEINFO_INDEX,
-    TILEINFO_DIRECTION,
-    TILEINFO_VISUALPLANE,
-    TILEINFO_SOLIDITYA,
-    TILEINFO_SOLIDITYB,
-    TILEINFO_FLAGSA,
-    TILEINFO_ANGLEA,
-    TILEINFO_FLAGSB,
-    TILEINFO_ANGLEB,
+    TILEINFO_INDEX       = 0,
+    TILEINFO_DIRECTION   = 1,
+    TILEINFO_VISUALPLANE = 2,
+    TILEINFO_SOLIDITYA   = 3,
+    TILEINFO_SOLIDITYB   = 4,
+    TILEINFO_FLAGSA      = 5,
+    TILEINFO_ANGLEA      = 6,
+    TILEINFO_FLAGSB      = 7,
+    TILEINFO_ANGLEB      = 8,
 };
 
 enum DeformationModes {
-    DEFORM_FG,
-    DEFORM_FG_WATER,
-    DEFORM_BG,
-    DEFORM_BG_WATER,
-};
-
-enum CameraStyles {
-    CAMERASTYLE_FOLLOW,
-    CAMERASTYLE_EXTENDED,
-    CAMERASTYLE_EXTENDED_OFFSET_L,
-    CAMERASTYLE_EXTENDED_OFFSET_R,
-    CAMERASTYLE_HLOCKED,
+    DEFORM_FG       = 0,
+    DEFORM_FG_WATER = 1,
+    DEFORM_BG       = 2,
+    DEFORM_BG_WATER = 3,
 };
 
 struct SceneInfo {
@@ -101,20 +86,20 @@ struct CollisionMasks {
 };
 
 struct TileLayer {
-    ushort tiles[TILELAYER_CHUNK_COUNT];
-    byte lineScroll[TILELAYER_LINESCROLL_COUNT];
+    ushort tiles[TILELAYER_CHUNK_MAX];
+    byte lineScroll[TILELAYER_SCROLL_MAX];
     int parallaxFactor;
     int scrollSpeed;
     int scrollPos;
     int angle;
-    int xpos;
-    int ypos;
-    int zpos;
+    int XPos;
+    int YPos;
+    int ZPos;
     int deformationOffset;
     int deformationOffsetW;
     byte type;
-    byte xsize;
-    byte ysize;
+    byte width;
+    byte height;
 };
 
 struct LineScroll {
@@ -208,7 +193,7 @@ extern CollisionMasks collisionMasks[2];
 
 extern byte tilesetGFXData[TILESET_SIZE];
 
-extern ushort tile3DFloorBuffer[0x100 * 0x100];
+extern ushort tile3DFloorBuffer[0x13334];
 extern bool drawStageGFXHQ;
 
 void InitFirstStage();

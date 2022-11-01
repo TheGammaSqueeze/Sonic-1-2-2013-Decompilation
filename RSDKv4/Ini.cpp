@@ -4,15 +4,6 @@
 #include <algorithm>
 #include <string>
 
-int strncmp(char const *a, char const *b)
-{
-    for (;; a++, b++) {
-        int d = tolower((unsigned char)*a) - tolower((unsigned char)*b);
-        if (d != 0 || !*a)
-            return d;
-    }
-}
-
 IniParser::IniParser(const char *filename, bool addPath)
 {
     items.clear();
@@ -42,7 +33,7 @@ IniParser::IniParser(const char *filename, bool addPath)
 
     FileIO *f;
     if ((f = fOpen(pathBuffer, "r")) == NULL) {
-        PrintLog("ERROR: Couldn't open file '%s'!", filename);
+        printLog("ERROR: Couldn't open file '%s'!", filename);
         return;
     }
 
@@ -53,10 +44,8 @@ IniParser::IniParser(const char *filename, bool addPath)
         while (true) {
             ret  = (int)fRead(&buf[strLen++], sizeof(byte), 1, f);
             flag = ret == 0;
-            if (ret == 0) {
-                strLen--;
+            if (ret == 0)
                 break;
-            }
             if (buf[strLen - 1] == '\n')
                 break;
         }
@@ -133,7 +122,7 @@ int IniParser::GetFloat(const char *section, const char *key, float *dest)
         }
     }
 
-    return 0;
+    return 0.0f;
 }
 int IniParser::GetBool(const char *section, const char *key, bool *dest)
 {
@@ -143,7 +132,7 @@ int IniParser::GetBool(const char *section, const char *key, bool *dest)
     for (int x = 0; x < items.size(); x++) {
         if (!strcmp(section, items[x].section)) {
             if (!strcmp(key, items[x].key)) {
-                *dest = !strncmp(items[x].value, "true") || !strcmp(items[x].value, "1");
+                *dest = !strcmp(items[x].value, "true") || !strcmp(items[x].value, "1");
                 return 1;
             }
         }
@@ -164,7 +153,7 @@ int IniParser::SetString(const char *section, const char *key, char *value)
         }
     }
     if (where < 0) {
-        where = (int)items.size();
+        where = items.size();
         items.push_back(ConfigItem());
     }
 
@@ -186,7 +175,7 @@ int IniParser::SetInteger(const char *section, const char *key, int value)
         }
     }
     if (where < 0) {
-        where = (int)items.size();
+        where = items.size();
         items.push_back(ConfigItem());
     }
 
@@ -208,7 +197,7 @@ int IniParser::SetFloat(const char *section, const char *key, float value)
         }
     }
     if (where < 0) {
-        where = (int)items.size();
+        where = items.size();
         items.push_back(ConfigItem());
     }
 
@@ -230,7 +219,7 @@ int IniParser::SetBool(const char *section, const char *key, bool value)
         }
     }
     if (where < 0) {
-        where = (int)items.size();
+        where = items.size();
         items.push_back(ConfigItem());
     }
 
@@ -252,7 +241,7 @@ int IniParser::SetComment(const char *section, const char *key, const char *comm
         }
     }
     if (where < 0) {
-        where = (int)items.size();
+        where = items.size();
         items.push_back(ConfigItem());
     }
 
@@ -285,7 +274,7 @@ void IniParser::Write(const char *filename, bool addPath)
 
     FileIO *f;
     if ((f = fOpen(pathBuffer, "w")) == NULL) {
-        PrintLog("ERROR: Couldn't open file '%s' for writing!", filename);
+        printLog("ERROR: Couldn't open file '%s' for writing!", filename);
         return;
     }
 

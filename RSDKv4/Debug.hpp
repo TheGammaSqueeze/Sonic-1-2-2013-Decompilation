@@ -6,7 +6,7 @@
 #endif
 
 extern bool endLine;
-inline void PrintLog(const char *msg, ...)
+inline void printLog(const char *msg, ...)
 {
 #ifndef RETRO_DISABLE_LOG
     if (engineDebugMode) {
@@ -46,7 +46,7 @@ inline void PrintLog(const char *msg, ...)
 #endif
 }
 
-inline void PrintLog(const ushort *msg)
+inline void printLog(const ushort *msg)
 {
 #ifndef RETRO_DISABLE_LOG
     if (engineDebugMode) {
@@ -66,7 +66,7 @@ inline void PrintLog(const ushort *msg)
             sprintf(pathBuffer, "log.txt");
 #elif RETRO_PLATFORM == RETRO_ANDROID
         sprintf(pathBuffer, "%s/log.txt", gamePath);
-        __android_log_print(ANDROID_LOG_INFO, "RSDKv4", "%ls", (wchar_t *)msg);
+        __android_log_print(ANDROID_LOG_INFO, "RSDKv4", "%ls", msg);
 #else
         sprintf(pathBuffer, BASE_PATH "log.txt");
 #endif
@@ -98,11 +98,30 @@ enum DevMenuMenus {
 #endif
 };
 
-void InitDevMenu();
-void InitErrorMessage();
-void ProcessStageSelect();
+enum StartMenuMenus {
+    STARTMENU_MAIN = 6,
+    STARTMENU_SAVESEL,
+    STARTMENU_PLAYERSEL,
+    STARTMENU_GAMEOPTS,
+    STARTMENU_TASTAGESEL,
+    STARTMENU_TACONFIRMSEL,
+    STARTMENU_ACHIEVEMENTS,
+    STARTMENU_LEADERBOARDS,
+#if RETRO_USE_MOD_LOADER
+    STARTMENU_MODMENU
+#endif
+};
+
+void initDevMenu();
+void initErrorMessage();
+void processStageSelect();
 
 // Not in original, but the code was, and its cleaner this way
-void SetTextMenu(int mode);
+void setTextMenu(int mode);
+#if !RETRO_USE_ORIGINAL_CODE
+// added due to lack of normal main menu
+void initStartMenu(int mode);
+void processStartMenu();
+#endif
 
 #endif //! DEBUG_H

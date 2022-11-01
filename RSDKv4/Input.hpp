@@ -17,7 +17,7 @@ enum InputButtons {
     INPUT_START,
     INPUT_SELECT,
     INPUT_ANY,
-    INPUT_BUTTONCOUNT,
+    INPUT_MAX,
 };
 
 struct InputData {
@@ -55,26 +55,17 @@ struct InputButton {
     inline bool down() { return (press || hold); }
 };
 
-enum DefaultHapticIDs {
-    HAPTIC_NONE = -2,
-    HAPTIC_STOP = -1,
-};
-
-extern InputData inputPress;
-extern InputData inputDown;
+extern InputData keyPress;
+extern InputData keyDown;
 
 extern int touchDown[8];
 extern int touchX[8];
 extern int touchY[8];
 extern int touchID[8];
-extern float touchXF[8];
-extern float touchYF[8];
 extern int touches;
 
-extern int hapticEffectNum;
-
 #if !RETRO_USE_ORIGINAL_CODE
-extern InputButton inputDevice[INPUT_BUTTONCOUNT];
+extern InputButton inputDevice[INPUT_MAX];
 extern int inputType;
 
 extern float LSTICK_DEADZONE;
@@ -122,18 +113,5 @@ void ProcessInput();
 
 void CheckKeyPress(InputData *input);
 void CheckKeyDown(InputData *input);
-
-int CheckTouchRect(float x1, float y1, float x2, float y2);
-int CheckTouchRectMatrix(void *m, float x1, float y1, float x2, float y2);
-
-#if RETRO_USE_HAPTICS
-inline int GetHapticEffectNum()
-{
-    int num         = hapticEffectNum;
-    hapticEffectNum = HAPTIC_NONE;
-    return num;
-}
-void HapticEffect(int *id, int *a2, int *a3, int *a4);
-#endif
 
 #endif // !INPUT_H
